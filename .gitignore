@@ -1,0 +1,17 @@
+.env
+# Ignore SQLite database files
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.sqlite-wal
+*.sqlite-shm
+
+# Python bytecode/cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Test/typecheck caches
+.pytest_cache/
+.mypy_cache/
