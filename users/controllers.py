@@ -4,7 +4,7 @@ from uuid import UUID
 from db.core import DbSession
 from . import models
 from . import service
-from ..auth.service import CurrentUser
+from auth.service import CurrentUser
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
