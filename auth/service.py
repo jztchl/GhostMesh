@@ -12,13 +12,12 @@ from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from exceptions import AuthenticationError
 import logging
 import os
-import dotenv
+from dotenv import load_dotenv
 
-dotenv
-# TODO: SECET_KEY= os.getenv("SECRET_KEY")
-SECRET_KEY = "197b2c37c391bed93fe80344fe73b806947a65e36206e05a1a23c2fa12702fe3"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 120
+load_dotenv()
+SECRET_KEY = os.getenv
+ALGORITHM = os.getenv("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "120"))
 
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl="auth/token")
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")

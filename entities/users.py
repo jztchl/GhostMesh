@@ -2,6 +2,7 @@ from sqlalchemy import Column, String
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 from db.core import Base
+from sqlalchemy.orm import relationship
 
 
 class User(Base):
@@ -12,6 +13,7 @@ class User(Base):
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
     password_hash = Column(String, nullable=False)
+    ai_characters = relationship("AICharacter", back_populates="owner")
 
     def __repr__(self):
         return f"<User(email='{self.email}', first_name='{self.first_name}', last_name='{self.last_name}')>"
