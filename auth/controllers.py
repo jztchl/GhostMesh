@@ -22,4 +22,5 @@ async def register_user(
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: DbSession
 ):
+    print(form_data.username)
     return service.login_for_access_token(form_data, db)
