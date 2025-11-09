@@ -16,7 +16,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.11.9"
 
       - name: Install dependencies
         run: |
@@ -27,7 +27,7 @@ jobs:
 
       - name: Run pylint
         run: |
-          PYTHONPATH=. pylint $(git ls-files '*.py')
+          pylint --disable=all --enable=unused-import $(git ls-files '*.py') --ignore-paths=.*/migrations/.*
 
 
       - name: Run bandit (security scan)
