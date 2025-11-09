@@ -22,6 +22,7 @@ class ChatSessionManager:
             "owner_id": user_id,
             "character_ids": character_ids,
             "connections": set(),
+            "messages": [],
         }
         return session_id
 
