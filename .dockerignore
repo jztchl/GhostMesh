@@ -1,0 +1,65 @@
+# Python build stuff
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environments
+venv/
+.env/
+.venv/
+env/
+ENV/
+
+# Dependency caches
+pip-wheel-metadata/
+*.egg-info/
+*.egg/
+.eggs/
+
+# Byte-compiled / cache files
+*.log
+*.sqlite3
+db.sqlite3
+*.db
+
+# Test and coverage data
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+
+# IDE & editor junk
+.vscode/
+.idea/
+*.swp
+*.swo
+
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile*
+docker-compose.yml
+.dockerignore
+
+
+
+# Misc
+__pypackages__/
+.cache/
+.mypy_cache/
+ruff_cache/
+.pyre/
+coverage.xml
+
+# Render/CI artifacts
+*.log
+*.pid
+*.sock
+
+.ruff_cache/
+.env
