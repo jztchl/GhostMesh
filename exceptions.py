@@ -25,3 +25,10 @@ class InvalidPasswordError(HTTPException):
 class PasswordMismatchError(HTTPException):
     def __init__(self):
         super().__init__(status_code=400, detail="The new passwords do not match.")
+
+
+class UserAlreadyExistsError(HTTPException):
+    def __init__(self, email):
+        super().__init__(
+            status_code=400, detail=f"User with email {email} already exists."
+        )

@@ -13,9 +13,11 @@ from exceptions import AuthenticationError
 import logging
 import os
 from dotenv import load_dotenv
+from sqlalchemy.exc import IntegrityError
+from exceptions import UserAlreadyExistsError
 
 load_dotenv()
-SECRET_KEY = os.getenv
+SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "120"))
 
@@ -71,6 +73,11 @@ def register_user(
         )
         db.add(create_user_model)
         db.commit()
+    except IntegrityError:
+        logging.error(
+            f"Failed to register user: {register_user_request.email} user already exists"
+        )
+        raise UserAlreadyExistsError(email=register_user_request.email)
     except Exception as e:
         logging.error(
             f"Failed to register user: {register_user_request.email}. Error: {str(e)}"

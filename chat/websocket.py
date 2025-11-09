@@ -2,7 +2,7 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 from auth.service import CurrentUser
 from .service import session_manager
-from .gemini import generate_ai_character_response
+from ai_agent.gemini_model import generate_ai_character_response
 
 ws_router = APIRouter()
 
@@ -11,7 +11,7 @@ ws_router = APIRouter()
 async def chat_socket(
     websocket: WebSocket,
     session_id: str,
-    current_user: CurrentUser = Depends(),
+    current_user: CurrentUser,
 ):
     session = session_manager.get(session_id)
     if not session or session["owner_id"] != current_user.get_uuid():
@@ -28,9 +28,7 @@ async def chat_socket(
             if not msg:
                 continue
 
-            reply = await generate_ai_character_response(
-                session["character_ids"], msg, current_user.get_db()
-            )
+            reply = await generate_ai_character_response(session["character_ids"], msg)
 
             for conn in list(session["connections"]):
                 await conn.send_json(reply)
