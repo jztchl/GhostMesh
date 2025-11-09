@@ -1,10 +1,13 @@
-from uuid import UUID
-from sqlalchemy.orm import Session
-from . import models
-from entities.users import User
-from exceptions import UserNotFoundError, InvalidPasswordError, PasswordMismatchError
-from auth.service import verify_password, get_password_hash
 import logging
+from uuid import UUID
+
+from sqlalchemy.orm import Session
+
+from auth.service import get_password_hash, verify_password
+from entities.users import User
+from exceptions import InvalidPasswordError, PasswordMismatchError, UserNotFoundError
+
+from . import models
 
 
 def get_user_by_id(db: Session, user_id: UUID) -> models.UserResponse:

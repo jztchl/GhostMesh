@@ -1,20 +1,22 @@
-from datetime import timedelta, datetime, timezone
-from typing import Annotated
-from uuid import UUID, uuid4
-from fastapi import Depends
-from passlib.context import CryptContext
-import jwt
-from jwt import PyJWTError
-from sqlalchemy.orm import Session
-from entities.users import User
-from . import models
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
-from exceptions import AuthenticationError
 import logging
 import os
+from datetime import datetime, timedelta, timezone
+from typing import Annotated
+from uuid import UUID, uuid4
+
+import jwt
 from dotenv import load_dotenv
+from fastapi import Depends
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from jwt import PyJWTError
+from passlib.context import CryptContext
 from sqlalchemy.exc import IntegrityError
-from exceptions import UserAlreadyExistsError
+from sqlalchemy.orm import Session
+
+from entities.users import User
+from exceptions import AuthenticationError, UserAlreadyExistsError
+
+from . import models
 
 load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -57,7 +59,7 @@ def verify_token(token: str) -> models.TokenData:
         return models.TokenData(user_id=user_id)
     except PyJWTError as e:
         logging.warning(f"Token verification failed: {str(e)}")
-        raise AuthenticationError()
+        raise AuthenticationError() from e
 
 
 def register_user(
@@ -73,11 +75,11 @@ def register_user(
         )
         db.add(create_user_model)
         db.commit()
-    except IntegrityError:
+    except IntegrityError as e:
         logging.error(
             f"Failed to register user: {register_user_request.email} user already exists"
         )
-        raise UserAlreadyExistsError(email=register_user_request.email)
+        raise UserAlreadyExistsError(email=register_user_request.email) from e
     except Exception as e:
         logging.error(
             f"Failed to register user: {register_user_request.email}. Error: {str(e)}"

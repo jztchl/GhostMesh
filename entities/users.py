@@ -1,8 +1,10 @@
+import uuid
+
 from sqlalchemy import Column, String
 from sqlalchemy.dialects.postgresql import UUID
-import uuid
-from db.core import Base
 from sqlalchemy.orm import relationship
+
+from db.core import Base
 
 
 class User(Base):

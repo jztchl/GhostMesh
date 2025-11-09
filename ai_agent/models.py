@@ -1,6 +1,6 @@
-from pydantic import BaseModel
-from entities.ai_character import AICharacter
 from uuid import UUID
+
+from pydantic import BaseModel
 
 
 class AICharacterRequest(BaseModel):

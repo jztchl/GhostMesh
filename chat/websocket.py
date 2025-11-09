@@ -1,10 +1,12 @@
 # chat/websocket.py
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from auth.service import verify_token
-from exceptions import AuthenticationError
-from .service import session_manager
+
 from ai_agent.gemini_model import generate_ai_character_response
+from auth.service import verify_token
 from db.core import SessionLocal
+from exceptions import AuthenticationError
+
+from .service import session_manager
 
 ws_router = APIRouter()
 

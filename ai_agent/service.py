@@ -1,11 +1,14 @@
-from .models import AICharacterRequest, AICharacterResponse
-from auth.service import CurrentUser
-from sqlalchemy.orm import Session
 import logging
-from entities.ai_character import AICharacter
-from fastapi import HTTPException
 from uuid import UUID
+
+from fastapi import HTTPException
 from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from auth.service import CurrentUser
+from entities.ai_character import AICharacter
+
+from .models import AICharacterRequest
 
 
 class AICharacterService:

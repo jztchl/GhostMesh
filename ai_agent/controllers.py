@@ -1,9 +1,12 @@
-from fastapi import APIRouter
 from uuid import UUID
-from .models import AICharacterRequest, AICharacterResponse, AICharacterListResponse
+
+from fastapi import APIRouter
+
 from auth.service import CurrentUser
-from .service import AICharacterService
 from db.core import DbSession
+
+from .models import AICharacterListResponse, AICharacterRequest, AICharacterResponse
+from .service import AICharacterService
 
 router = APIRouter(prefix="/ai-character")
 

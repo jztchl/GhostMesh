@@ -1,9 +1,10 @@
-from sqlalchemy import Column, String, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
 import uuid
-from db.core import Base
+
+from sqlalchemy import Column, ForeignKey, String, UniqueConstraint
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from sqlalchemy import UniqueConstraint
+
+from db.core import Base
 
 
 class AICharacter(Base):

@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Depends
-from db.core import DbSession
+from fastapi import APIRouter
+
 from auth.service import CurrentUser
+from db.core import DbSession
+
 from . import models, service
 
 router = APIRouter(prefix="/chat", tags=["Chat"])

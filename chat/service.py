@@ -1,7 +1,9 @@
 import secrets
 from uuid import UUID
-from sqlalchemy.orm import Session
+
 from fastapi import HTTPException
+from sqlalchemy.orm import Session
+
 from entities.ai_character import AICharacter
 
 

@@ -1,13 +1,13 @@
 import asyncio
-from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
-from google import genai
-from google.genai.types import GenerateContentConfig, Tool, GoogleSearchRetrieval
-import os
-from dotenv import load_dotenv
-from entities.ai_character import AICharacter
 from uuid import UUID
+
+from dotenv import load_dotenv
+from google import genai
+from google.genai.types import GenerateContentConfig, GoogleSearchRetrieval
 from sqlalchemy.orm import Session
+
+from entities.ai_character import AICharacter
 
 load_dotenv()
 client = genai.Client()
