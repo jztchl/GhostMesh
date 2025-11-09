@@ -1,0 +1,40 @@
+name: CI - Lint, Security, and Tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install pytest pylint bandit
+
+      # 🔍 Lint with pylint
+      - name: Run pylint
+        run: |
+          PYTHONPATH=. pylint $(git ls-files '*.py')
+
+      # 🧠 Security scan with bandit
+      - name: Run bandit (security scan)
+        run: |
+          bandit -r . -c pyproject.toml || true
+
+      # 🧪 Run pytest
+      - name: Run tests
+        run: |
+          pytest -v --maxfail=3 --disable-warnings
