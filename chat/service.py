@@ -4,47 +4,49 @@ from collections import defaultdict
 from uuid import UUID
 
 from fastapi import HTTPException, WebSocket
+from sqlalchemy.orm import Session
 
 from config import settings
-from db.core import SessionLocal
 from db.redis import redis_client
 from entities.ai_character import AICharacter
 
 
 class ChatSessionManager:
     def __init__(self):
-        self.redis = redis_client
-        self.db = SessionLocal()
         self.active_connections: dict[str, list[WebSocket]] = defaultdict(list)
 
-    def create(self, user_id: UUID, character_ids: list[UUID]) -> str:
+    def create(self, user_id: UUID, character_ids: list[UUID], db: Session) -> str:
         owned = (
-            self.db.query(AICharacter.id)
+            db.query(AICharacter.id)
             .filter(AICharacter.owner_id == user_id, AICharacter.id.in_(character_ids))
             .all()
         )
         if len(owned) != len(character_ids):
             raise HTTPException(status_code=403, detail="Character ownership mismatch")
         session_id = secrets.token_urlsafe(16)
-        self.redis.set(f"session:{session_id}:owner_id", str(user_id))
+        redis_client.set(f"session:{session_id}:owner_id", str(user_id))
         if character_ids:
-            self.redis.sadd(
+            redis_client.sadd(
                 f"session:{session_id}:characters", *[str(cid) for cid in character_ids]
             )
-        self.redis.lpush(
+        redis_client.lpush(
             f"session:{session_id}:messages",
-            json.dumps({"user": "Begin"}).encode("utf-8"),
+            json.dumps({"user": "Begin"}),
         )
+        self.refresh_ttl(session_id)
         return session_id
 
     def get_ai_characters(self, session_id: str):
         return [
-            UUID(cid.decode("utf-8"))
-            for cid in self.redis.smembers(f"session:{session_id}:characters")
+            UUID(cid)
+            for cid in redis_client.smembers(f"session:{session_id}:characters")
         ]
 
     def get_owner(self, session_id: str):
-        return UUID(self.redis.get(f"session:{session_id}:owner_id").decode("utf-8"))
+        try:
+            return UUID(redis_client.get(f"session:{session_id}:owner_id"))
+        except Exception:
+            raise HTTPException(status_code=404, detail="Session not found")
 
     def add_connection(self, session_id: str, websocket: WebSocket):
         self.active_connections[session_id].append(websocket)
@@ -66,21 +68,21 @@ class ChatSessionManager:
         # TODO: add this to api to delete the chat session
 
     def add_message(self, session_id: str, message: str):
-        self.redis.rpush(
-            f"session:{session_id}:messages", json.dumps(message).encode("utf-8")
-        )
+        redis_client.rpush(f"session:{session_id}:messages", json.dumps(message))
 
     def get_messages(self, session_id: str):
         msgs = [
-            json.loads(m.decode("utf-8"))
-            for m in self.redis.lrange(f"session:{session_id}:messages", 0, -1)
+            json.loads(m)
+            for m in redis_client.lrange(f"session:{session_id}:messages", 0, -1)
         ]
         return msgs
 
     def refresh_ttl(self, session_id: str):
-        self.redis.expire(f"session:{session_id}:messages", settings.CHAT_SESSION_TTL)
-        self.redis.expire(f"session:{session_id}:characters", settings.CHAT_SESSION_TTL)
-        self.redis.expire(f"session:{session_id}:owner_id", settings.CHAT_SESSION_TTL)
+        redis_client.expire(f"session:{session_id}:messages", settings.CHAT_SESSION_TTL)
+        redis_client.expire(
+            f"session:{session_id}:characters", settings.CHAT_SESSION_TTL
+        )
+        redis_client.expire(f"session:{session_id}:owner_id", settings.CHAT_SESSION_TTL)
 
 
 session_manager = ChatSessionManager()

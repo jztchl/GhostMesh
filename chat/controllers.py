@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from auth.service import CurrentUser
+from db.core import DbSession
 
 from . import models, service
 
@@ -11,10 +12,12 @@ router = APIRouter(prefix="/chat", tags=["Chat"])
 def create_session(
     payload: models.ChatSessionRequest,
     current_user: CurrentUser,
+    db: DbSession,
 ):
     session_id = service.session_manager.create(
         user_id=current_user.get_uuid(),
         character_ids=payload.character_ids,
+        db=db,
     )
     ws_url = f"/ws/chat/{session_id}"
     return models.ChatSessionResponse(session_id=session_id, websocket_url=ws_url)
