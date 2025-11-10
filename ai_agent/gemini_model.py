@@ -2,15 +2,14 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from uuid import UUID
 
-from dotenv import load_dotenv
 from google import genai
 from google.genai.types import GenerateContentConfig, GoogleSearchRetrieval
 from sqlalchemy.orm import Session
 
+from config import settings
 from entities.ai_character import AICharacter
 
-load_dotenv()
-client = genai.Client()
+client = genai.Client(api_key=settings.GEMINI_API_KEY)
 BASE_INSTRUCTION_P1 = "You are"
 BASE_INSTRUCTION_P2 = "Mimic the following personality traits and answer the last message to the user , you can also chat with others too.personality trait:"
 BASE_INSTRUCTION_P3 = "If you want to skip the conversation reply simply with a '.'"
