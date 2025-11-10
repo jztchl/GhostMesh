@@ -34,13 +34,13 @@ async def chat_socket(
 
     db = SessionLocal()
     try:
-        chat_session = session_manager.get(session_id)
-        if not chat_session or chat_session["owner_id"] != current_user.get_uuid():
+        owner = session_manager.get_owner(session_id)
+        if not owner or owner != current_user.get_uuid():
             await websocket.close(code=4403)
             return
 
         await websocket.accept()
-        chat_session["connections"].add(websocket)
+        session_manager.add_connection(session_id, websocket)
 
         try:
             while True:
@@ -48,22 +48,26 @@ async def chat_socket(
                 msg = payload.get("message")
                 if not msg:
                     continue
-                chat_session["messages"].append({"user": msg})
+                session_manager.add_message(session_id, {"user": msg})
                 reply = await generate_ai_character_response(
-                    chat_session["character_ids"], chat_session["messages"], db
+                    session_manager.get_ai_characters(session_id),
+                    session_manager.get_messages(session_id),
+                    db,
                 )
-                chat_session["messages"].extend(reply)
+                for msg in reply:
+                    session_manager.add_message(session_id, msg)
 
-                for conn in list(chat_session["connections"]):
+                for conn in list(session_manager.get_connections(session_id)):
                     await conn.send_json(reply)
 
         except WebSocketDisconnect:
-            chat_session["connections"].discard(websocket)
-            if not chat_session["connections"]:
-                session_manager.discard(session_id)
+            session_manager.remove_connection(session_id, websocket)
+            if not session_manager.get_connections(session_id):
+                # session_manager.discard(session_id)
+                pass
         except Exception as exc:
             await websocket.send_json({"error": str(exc)})
             await websocket.close()
-            session_manager.discard(session_id)
+            # session_manager.discard(session_id)
     finally:
         db.close()
