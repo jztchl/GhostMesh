@@ -49,11 +49,13 @@ async def chat_socket(
                 if not msg:
                     continue
                 session_manager.add_message(session_id, {"user": msg})
+                session_manager.refresh_ttl(session_id)
                 reply = await generate_ai_character_response(
                     session_manager.get_ai_characters(session_id),
                     session_manager.get_messages(session_id),
                     db,
                 )
+
                 for msg in reply:
                     session_manager.add_message(session_id, msg)
 

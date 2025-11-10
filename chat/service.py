@@ -5,6 +5,7 @@ from uuid import UUID
 
 from fastapi import HTTPException, WebSocket
 
+from config import settings
 from db.core import SessionLocal
 from db.redis import redis_client
 from entities.ai_character import AICharacter
@@ -75,6 +76,11 @@ class ChatSessionManager:
             for m in self.redis.lrange(f"session:{session_id}:messages", 0, -1)
         ]
         return msgs
+
+    def refresh_ttl(self, session_id: str):
+        self.redis.expire(f"session:{session_id}:messages", settings.CHAT_SESSION_TTL)
+        self.redis.expire(f"session:{session_id}:characters", settings.CHAT_SESSION_TTL)
+        self.redis.expire(f"session:{session_id}:owner_id", settings.CHAT_SESSION_TTL)
 
 
 session_manager = ChatSessionManager()
