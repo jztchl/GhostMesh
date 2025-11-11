@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     GEMINI_API_KEY: str
     REDIS_URL: str
-    REDIS_TOKEN: str
+    CHAT_SESSION_TTL: int
 
     class Config:
         env_file = ".env"

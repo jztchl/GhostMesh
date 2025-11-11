@@ -11,8 +11,8 @@ router = APIRouter(prefix="/chat", tags=["Chat"])
 @router.post("/sessions", response_model=models.ChatSessionResponse)
 def create_session(
     payload: models.ChatSessionRequest,
-    db: DbSession,
     current_user: CurrentUser,
+    db: DbSession,
 ):
     session_id = service.session_manager.create(
         user_id=current_user.get_uuid(),
