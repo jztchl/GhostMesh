@@ -64,12 +64,8 @@ async def chat_socket(
 
         except WebSocketDisconnect:
             session_manager.remove_connection(session_id, websocket)
-            if not session_manager.get_connections(session_id):
-                # session_manager.discard(session_id)
-                pass
         except Exception as exc:
             await websocket.send_json({"error": str(exc)})
             await websocket.close()
-            # session_manager.discard(session_id)
     finally:
         db.close()

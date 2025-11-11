@@ -43,10 +43,10 @@ class ChatSessionManager:
         ]
 
     def get_owner(self, session_id: str):
-        try:
-            return UUID(redis_client.get(f"session:{session_id}:owner_id"))
-        except Exception:
-            raise HTTPException(status_code=404, detail="Session not found")
+        id = redis_client.get(f"session:{session_id}:owner_id")
+        if not id:
+            return None
+        return UUID(id)
 
     def add_connection(self, session_id: str, websocket: WebSocket):
         self.active_connections[session_id].append(websocket)
@@ -64,8 +64,10 @@ class ChatSessionManager:
         return self.active_connections.get(session_id, [])
 
     def discard(self, session_id: str):
-        pass
-        # TODO: add this to api to delete the chat session
+        redis_client.delete(f"session:{session_id}:messages")
+        redis_client.delete(f"session:{session_id}:characters")
+        redis_client.delete(f"session:{session_id}:owner_id")
+        self.active_connections.pop(session_id, None)
 
     def add_message(self, session_id: str, message: str):
         redis_client.rpush(f"session:{session_id}:messages", json.dumps(message))
