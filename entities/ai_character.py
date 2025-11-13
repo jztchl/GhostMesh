@@ -14,6 +14,7 @@ class AICharacter(Base):
     name = Column(String, unique=True, nullable=False)
     description = Column(String, nullable=False)
     personality_traits = Column(String, nullable=True)
+    avatar_url = Column(String, nullable=True)
     owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     owner = relationship("User", back_populates="ai_characters")
 

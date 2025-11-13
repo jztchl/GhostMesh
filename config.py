@@ -8,7 +8,13 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     GEMINI_API_KEY: str
     REDIS_URL: str
+    REDIS_CELERY_BROKER: str
     CHAT_SESSION_TTL: int
+    AWS_ENDPOINT_URL: str
+    AWS_ACCESS_KEY_ID: str
+    AWS_SECRET_ACCESS_KEY: str
+    AWS_REGION_NAME: str
+    AWS_BUCKET_FOR_IMAGES: str
 
     class Config:
         env_file = ".env"
