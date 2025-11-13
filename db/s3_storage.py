@@ -16,14 +16,18 @@ s3_client = boto3.client(
 
 
 # Upload file
-def upload_file(file_path: str, bucket: str = "images_bucket", object_name: str = None):
+def upload_file(
+    file_path: str, bucket: str = "images_bucket", object_name: str | None = None
+) -> str | None:
     if object_name is None:
         object_name = file_path.split("/")[-1]
 
     try:
         with open(file_path, "rb") as f:
             s3_client.put_object(Bucket=bucket, Key=object_name, Body=f.read())
-        public_url = f"https://tfupfusucpygkaudixwl.supabase.co/storage/v1/object/public/{bucket}/{object_name}"
+            public_url = (
+                f"{settings.AWS_ENDPOINT_URL}/object/public/{bucket}/{object_name}"
+            )
         logging.info(f"✓ Uploaded {object_name} to {bucket}")
         return public_url
     except Exception as e:
