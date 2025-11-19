@@ -25,11 +25,9 @@ def upload_file(
     try:
         with open(file_path, "rb") as f:
             s3_client.put_object(Bucket=bucket, Key=object_name, Body=f.read())
-            public_url = (
-                f"{settings.AWS_ENDPOINT_URL}/object/public/{bucket}/{object_name}"
-            )
+            public_url = f"{settings.IMAGE_PUBLIC_ACCESS_URL}/{bucket}/{object_name}"
         logging.info(f"✓ Uploaded {object_name} to {bucket}")
         return public_url
     except Exception as e:
-        logging.error(f"✗ Upload failed: {e}")
+        logging.exception(f"✗ Upload failed: {e}")
         return None

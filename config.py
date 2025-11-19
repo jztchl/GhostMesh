@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     AWS_SECRET_ACCESS_KEY: str
     AWS_REGION_NAME: str
     AWS_BUCKET_FOR_IMAGES: str
+    IMAGE_PUBLIC_ACCESS_URL: str
 
     class Config:
         env_file = ".env"

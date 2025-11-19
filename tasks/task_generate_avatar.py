@@ -36,7 +36,7 @@ def generate_avatar(ai_character_id: str):
             )
             compress_image_under_300kb(generated_image_path, generated_image_path)
             object_name = (
-                f"{ai_character_id}+{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
+                f"{ai_character_id}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
             )
             public_url = upload_file(
                 file_path=generated_image_path,

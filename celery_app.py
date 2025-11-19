@@ -6,6 +6,8 @@ celery_client = Celery(
     "celery_app",
     broker=settings.REDIS_CELERY_BROKER,
     backend=settings.REDIS_CELERY_BROKER,
+    timezone="Asia/Kolkata",
+    enable_utc=False,
 )
 
 
