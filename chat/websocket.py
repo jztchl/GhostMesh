@@ -45,22 +45,18 @@ async def chat_socket(
         try:
             while True:
                 payload = await websocket.receive_json()
-                msg = payload.get("message")
-                if not msg:
-                    continue
-                session_manager.add_message(session_id, {"user": msg})
+                session_manager.add_message(session_id, payload)
                 session_manager.refresh_ttl(session_id)
-                reply = await generate_ai_character_response(
+                await generate_ai_character_response(
                     session_manager.get_ai_characters(session_id),
                     session_manager.get_messages(session_id),
                     db,
+                    websocket,
+                    session_id,
                 )
 
-                for msg in reply:
-                    session_manager.add_message(session_id, msg)
-
                 for conn in list(session_manager.get_connections(session_id)):
-                    await conn.send_json(reply)
+                    await conn.send_json(payload)
 
         except WebSocketDisconnect:
             session_manager.remove_connection(session_id, websocket)

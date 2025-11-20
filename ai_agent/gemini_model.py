@@ -4,6 +4,7 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor
 from uuid import UUID
 
+from fastapi import WebSocket
 from google import genai
 from google.genai.types import (
     GenerateContentConfig,
@@ -12,12 +13,13 @@ from google.genai.types import (
 )
 from sqlalchemy.orm import Session
 
+from chat.service import session_manager
 from config import settings
 from entities.ai_character import AICharacter
 
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
 BASE_INSTRUCTION_P1 = "You are"
-BASE_INSTRUCTION_P2 = "Mimic the following personality traits and answer the last message to the user , you can also chat with others too.personality trait:"
+BASE_INSTRUCTION_P2 = "Mimic the following personality traits and answer the last message to the user only message no need of behavior, you can also chat with others characters.personality trait:"
 BASE_INSTRUCTION_P3 = "If you want to skip the conversation reply simply with a '.'"
 
 # TODO : make useful tools that can be integrated with the AI agent
@@ -67,29 +69,38 @@ def _call_gemini(instruction: str, context: str):
     )
 
 
-async def get_llm_response(instruction: str, context: str) -> str:
+async def get_llm_response(
+    instruction: str,
+    context: str,
+    ai_character_name: str,
+    websocket: WebSocket,
+    session_id: str,
+) -> str:
     loop = asyncio.get_running_loop()
     response = await loop.run_in_executor(_executor, _call_gemini, instruction, context)
-    return response.text
+    payload = {"name": ai_character_name, "message": response.text}
+    await websocket.send_json(payload)
+    session_manager.add_message(session_id, payload)
 
 
 async def generate_ai_character_response(
-    ai_character_ids: list[UUID], user_message: list[dict[str, str]], db: Session
+    ai_character_ids: list[UUID],
+    user_message: list[dict[str, str]],
+    db: Session,
+    websocket: WebSocket,
+    session_id: str,
 ) -> list[dict[str, str]]:
     ai_characters = (
         db.query(AICharacter).filter(AICharacter.id.in_(ai_character_ids)).all()
     )
 
-    names: list[str] = []
-    tasks: list[asyncio.Task[str]] = []
-
     for ai_character in ai_characters:
         instruction = f"{BASE_INSTRUCTION_P1}:{ai_character.name} and {BASE_INSTRUCTION_P2}: {ai_character.personality_traits or ''} {BASE_INSTRUCTION_P3}".strip()
-        names.append(ai_character.name)
-        tasks.append(get_llm_response(instruction, str(user_message)))
-
-    results = await asyncio.gather(*tasks)
-    return [{"name": name, "message": result} for name, result in zip(names, results)]
+        asyncio.create_task(
+            get_llm_response(
+                instruction, str(user_message), ai_character.name, websocket, session_id
+            )
+        )
 
 
 def generate_image(description: str) -> str:
