@@ -1,9 +1,15 @@
 import asyncio
+import os
+import uuid
 from concurrent.futures import ThreadPoolExecutor
 from uuid import UUID
 
 from google import genai
-from google.genai.types import GenerateContentConfig, GoogleSearchRetrieval
+from google.genai.types import (
+    GenerateContentConfig,
+    GenerateImagesConfig,
+    GoogleSearchRetrieval,
+)
 from sqlalchemy.orm import Session
 
 from config import settings
@@ -84,3 +90,21 @@ async def generate_ai_character_response(
 
     results = await asyncio.gather(*tasks)
     return [{"name": name, "message": result} for name, result in zip(names, results)]
+
+
+def generate_image(description: str) -> str:
+    response = client.models.generate_images(
+        model="imagen-4.0-generate-001",
+        prompt=description,
+        config=GenerateImagesConfig(
+            number_of_images=1,
+            image_size="1K",
+        ),
+    )
+
+    os.makedirs("generated_images", exist_ok=True)
+
+    filename = f"{uuid.uuid4()}.png"
+    file_path = os.path.join("generated_images", filename)
+    response.generated_images[0].image.save(file_path)
+    return file_path

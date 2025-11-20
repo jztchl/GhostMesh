@@ -4,7 +4,8 @@ RUN pip install --no-cache-dir uv
 
 WORKDIR /app
 
-
+ENV TZ=Asia/Kolkata
+ENV UV_HTTP_TIMEOUT=120
 COPY . .
 
 RUN uv pip install --system --no-cache -r requirements.txt

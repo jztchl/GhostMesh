@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from auth.service import CurrentUser
 from entities.ai_character import AICharacter
+from tasks.task_generate_avatar import generate_avatar
 
 from .models import AICharacterRequest
 
@@ -19,6 +20,20 @@ class AICharacterService:
         self, request: AICharacterRequest, current_user: CurrentUser
     ):
         try:
+            existing = (
+                self.db.query(AICharacter)
+                .filter(
+                    AICharacter.name == request.name,
+                    AICharacter.owner_id == current_user.get_uuid(),
+                )
+                .first()
+            )
+
+            if existing:
+                raise HTTPException(
+                    status_code=400, detail="Character with this name already exists"
+                )
+
             new_ai_character = AICharacter(
                 name=request.name,
                 description=request.description,
@@ -27,7 +42,7 @@ class AICharacterService:
             )
             self.db.add(new_ai_character)
             self.db.commit()
-
+            generate_avatar.delay(ai_character_id=str(new_ai_character.id))
             return new_ai_character
 
         except Exception as e:
