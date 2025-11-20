@@ -15,7 +15,7 @@ from utils.compress_image import compress_image_under_300kb
 @celery_client.task
 def generate_avatar(ai_character_id: str):
     BASE_PROMPT = (
-        "For the AI character description create  a cartoonish avatar,description:"
+        "For the AI character description create a cartoonish avatar,description:"
     )
     try:
         with closing(SessionLocal()) as db:
@@ -43,9 +43,12 @@ def generate_avatar(ai_character_id: str):
                 bucket=settings.AWS_BUCKET_FOR_IMAGES,
                 object_name=object_name,
             )
+            if not public_url:
+                raise RuntimeError("Failed to upload avatar to S3")
             ai_character.avatar_url = public_url
             db.add(ai_character)
             db.commit()
-            os.remove(generated_image_path)
     except Exception as e:
         print(f"Error generating avatar for AI character {ai_character_id}: {e}")
+    finally:
+        os.remove(generated_image_path)

@@ -1,4 +1,5 @@
 import logging
+import os
 
 import boto3
 from botocore.client import Config
@@ -20,7 +21,7 @@ def upload_file(
     file_path: str, bucket: str = "images_bucket", object_name: str | None = None
 ) -> str | None:
     if object_name is None:
-        object_name = file_path.split("/")[-1]
+        object_name = os.path.basename(file_path)
 
     try:
         with open(file_path, "rb") as f:
