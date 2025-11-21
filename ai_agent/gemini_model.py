@@ -1,11 +1,14 @@
 import asyncio
+import logging
 import os
 import uuid
 from concurrent.futures import ThreadPoolExecutor
+from typing import Optional
 from uuid import UUID
 
 from fastapi import WebSocket
 from google import genai
+from google.api_core import exceptions as api_exceptions
 from google.genai.types import (
     GenerateContentConfig,
     GenerateImagesConfig,
@@ -18,6 +21,7 @@ from config import settings
 from entities.ai_character import AICharacter
 
 client = genai.Client(api_key=settings.GEMINI_API_KEY)
+logger = logging.getLogger(__name__)
 BASE_INSTRUCTION_P1 = "You are"
 BASE_INSTRUCTION_P2 = "Mimic the following personality traits and answer the last message to the user only message no need of behavior, you can also chat with others characters.personality trait:"
 BASE_INSTRUCTION_P3 = "If you want to skip the conversation reply simply with a '.'"
@@ -59,14 +63,18 @@ _executor = ThreadPoolExecutor()
 
 
 def _call_gemini(instruction: str, context: str):
-    return client.models.generate_content(
-        model=settings.GEMINI_CHAT_MODEL,
-        config=GenerateContentConfig(
-            system_instruction=instruction,
-            tools=tools,
-        ),
-        contents=context,
-    )
+    try:
+        return client.models.generate_content(
+            model=settings.GEMINI_CHAT_MODEL,
+            config=GenerateContentConfig(
+                system_instruction=instruction,
+                tools=tools,
+            ),
+            contents=context,
+        )
+    except api_exceptions.GoogleAPICallError as e:
+        logger.error(f"Error calling Gemini: {e}")
+        return None
 
 
 async def get_llm_response(
@@ -78,9 +86,17 @@ async def get_llm_response(
 ) -> str:
     loop = asyncio.get_running_loop()
     response = await loop.run_in_executor(_executor, _call_gemini, instruction, context)
-    payload = {"name": ai_character_name, "message": response.text}
-    await websocket.send_json(payload)
-    session_manager.add_message(session_id, payload)
+    if response:
+        payload = {"name": ai_character_name, "message": response.text}
+        await websocket.send_json(payload)
+        session_manager.add_message(session_id, payload)
+    else:
+        payload = {
+            "name": ai_character_name,
+            "message": "I am sorry, I am not able to generate a response",
+        }
+        await websocket.send_json(payload)
+        session_manager.add_message(session_id, payload)
 
 
 async def generate_ai_character_response(
@@ -103,7 +119,7 @@ async def generate_ai_character_response(
         )
 
 
-def generate_image(description: str) -> str:
+def generate_image(description: str) -> Optional[str]:
     try:
         response = client.models.generate_images(
             model=settings.GEMINI_IMG_GEN_MODEL,
@@ -120,6 +136,6 @@ def generate_image(description: str) -> str:
         file_path = os.path.join("generated_images", filename)
         response.generated_images[0].image.save(file_path)
         return file_path
-    except Exception as e:
-        print(f"Error generating image: {e}")
+    except api_exceptions.GoogleAPICallError as e:
+        logger.error(f"Error generating image: {e}")
         return None
