@@ -47,6 +47,11 @@ async def chat_socket(
                 payload = await websocket.receive_json()
                 session_manager.add_message(session_id, payload)
                 session_manager.refresh_ttl(session_id)
+                for conn in list(session_manager.get_connections(session_id)):
+                    try:
+                        await conn.send_json(payload)
+                    except Exception:
+                        session_manager.remove_connection(session_id, conn)
                 await generate_ai_character_response(
                     session_manager.get_ai_characters(session_id),
                     session_manager.get_messages(session_id),
@@ -54,9 +59,6 @@ async def chat_socket(
                     websocket,
                     session_id,
                 )
-
-                for conn in list(session_manager.get_connections(session_id)):
-                    await conn.send_json(payload)
 
         except WebSocketDisconnect:
             session_manager.remove_connection(session_id, websocket)
