@@ -1,8 +1,6 @@
 from celery import Celery
 
 from config import settings
-from entities.ai_character import AICharacter  # noqa: F401
-from entities.users import User  # noqa: F401
 
 celery_client = Celery(
     "celery_app",
