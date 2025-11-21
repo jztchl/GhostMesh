@@ -60,7 +60,7 @@ _executor = ThreadPoolExecutor()
 
 def _call_gemini(instruction: str, context: str):
     return client.models.generate_content(
-        model="gemini-2.5-flash",
+        model=settings.GEMINI_CHAT_MODEL,
         config=GenerateContentConfig(
             system_instruction=instruction,
             tools=tools,
@@ -104,18 +104,22 @@ async def generate_ai_character_response(
 
 
 def generate_image(description: str) -> str:
-    response = client.models.generate_images(
-        model="imagen-4.0-generate-001",
-        prompt=description,
-        config=GenerateImagesConfig(
-            number_of_images=1,
-            image_size="1K",
-        ),
-    )
+    try:
+        response = client.models.generate_images(
+            model=settings.GEMINI_IMG_GEN_MODEL,
+            prompt=description,
+            config=GenerateImagesConfig(
+                number_of_images=1,
+                image_size="1K",
+            ),
+        )
 
-    os.makedirs("generated_images", exist_ok=True)
+        os.makedirs("generated_images", exist_ok=True)
 
-    filename = f"{uuid.uuid4()}.png"
-    file_path = os.path.join("generated_images", filename)
-    response.generated_images[0].image.save(file_path)
-    return file_path
+        filename = f"{uuid.uuid4()}.png"
+        file_path = os.path.join("generated_images", filename)
+        response.generated_images[0].image.save(file_path)
+        return file_path
+    except Exception as e:
+        print(f"Error generating image: {e}")
+        return None
