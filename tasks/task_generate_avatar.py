@@ -8,12 +8,13 @@ from celery_app import celery_client
 from config import settings
 from db.core import SessionLocal
 from db.s3_storage import upload_file
-from entities.ai_character import AICharacter
 from utils.compress_image import compress_image_under_300kb
 
 
 @celery_client.task
 def generate_avatar(ai_character_id: str):
+    from entities.ai_character import AICharacter
+
     BASE_PROMPT = (
         "For the AI character description create a cartoonish avatar,description:"
     )
