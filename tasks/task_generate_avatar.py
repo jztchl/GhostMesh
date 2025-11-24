@@ -8,15 +8,17 @@ from celery_app import celery_client
 from config import settings
 from db.core import SessionLocal
 from db.s3_storage import upload_file
-from entities.ai_character import AICharacter
 from utils.compress_image import compress_image_under_300kb
 
 
 @celery_client.task
 def generate_avatar(ai_character_id: str):
+    from entities.ai_character import AICharacter
+
     BASE_PROMPT = (
         "For the AI character description create a cartoonish avatar,description:"
     )
+    generated_image_path = None
     try:
         with closing(SessionLocal()) as db:
             ai_character = (
@@ -34,6 +36,8 @@ def generate_avatar(ai_character_id: str):
                 + " name: "
                 + ai_character.name
             )
+            if not generated_image_path:
+                raise RuntimeError("Failed to generate avatar")
             compress_image_under_300kb(generated_image_path, generated_image_path)
             object_name = (
                 f"{ai_character_id}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
@@ -51,4 +55,5 @@ def generate_avatar(ai_character_id: str):
     except Exception as e:
         print(f"Error generating avatar for AI character {ai_character_id}: {e}")
     finally:
-        os.remove(generated_image_path)
+        if generated_image_path:
+            os.remove(generated_image_path)

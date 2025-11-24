@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     AWS_REGION_NAME: str
     AWS_BUCKET_FOR_IMAGES: str
     IMAGE_PUBLIC_ACCESS_URL: str
+    GEMINI_CHAT_MODEL: str
+    GEMINI_IMG_GEN_MODEL: str
 
     class Config:
         env_file = ".env"
